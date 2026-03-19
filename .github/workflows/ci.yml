@@ -64,7 +64,8 @@ jobs:
 
       - name: Integration tests — @case-study/functions
         # demo- prefix: Firebase CLI treats this as a local-only project, no auth required
-        run: firebase emulators:exec --only firestore,functions "pnpm --filter @case-study/functions test"
+        # pnpm exec resolves firebase from node_modules/.bin (installed as a workspace devDependency)
+        run: pnpm exec firebase emulators:exec --only firestore,functions "pnpm --filter @case-study/functions test"
 
       # ── Production build ─────────────────────────────────────────────
       - name: Build @case-study/web
