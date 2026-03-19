@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+emulator-data/
+
+# Environment
+.env*.local
+
+# Editor
+.DS_Store
+*.pem
+
+# Claude
+CLAUDE.md
+.claude/
+
+# Internal planning documents (not part of the published case study)
+docs/PRD.md
+docs/ISSUES.md

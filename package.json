@@ -1,0 +1,20 @@
+{
+  "name": "case-study-nextjs-firebase-type-contracts",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter @case-study/shared build && pnpm --filter @case-study/functions build && pnpm --filter @case-study/web build",
+    "dev": "pnpm --filter @case-study/functions build && concurrently \"firebase emulators:start --only firestore,functions\" \"pnpm --filter @case-study/functions dev\" \"pnpm --filter @case-study/web dev\"",
+    "emulators": "firebase emulators:start --only firestore,functions",
+    "typecheck": "pnpm --filter @case-study/shared typecheck && pnpm --filter @case-study/functions typecheck && pnpm --filter @case-study/web typecheck",
+    "lint": "pnpm --filter @case-study/web lint",
+    "test": "pnpm --filter @case-study/shared test && pnpm --filter @case-study/functions build && firebase emulators:exec --only firestore,functions \"pnpm --filter @case-study/functions test\""
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "firebase-tools": "^13.0.0"
+  }
+}
