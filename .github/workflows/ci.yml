@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Type-check · Lint · Test · Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Firebase emulator requires Java
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ── Build shared first (consumers depend on dist/) ──────────────
+      - name: Build @case-study/shared
+        run: pnpm --filter @case-study/shared build
+
+      # ── Type-check all packages ─────────────────────────────────────
+      # This is the mechanical proof of the thesis:
+      # a shape change in shared that breaks a consumer fails here.
+      - name: Type-check
+        run: pnpm typecheck
+
+      # ── Lint (@case-study/web only) ──────────────────────────────────
+      # functions/ and packages/shared/ rely on TypeScript strict mode as
+      # their primary quality gate — ESLint is scoped to the Next.js package.
+      - name: Lint
+        run: pnpm lint
+
+      # ── Unit tests (no emulator needed) ─────────────────────────────
+      - name: Unit tests — @case-study/shared
+        run: pnpm --filter @case-study/shared test
+
+      # ── Integration tests (Firebase emulator) ───────────────────────
+      - name: Cache Firebase emulator binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('firebase.json') }}
+
+      - name: Build @case-study/functions
+        run: pnpm --filter @case-study/functions build
+
+      - name: Integration tests — @case-study/functions
+        # demo- prefix: Firebase CLI treats this as a local-only project, no auth required
+        run: firebase emulators:exec --only firestore,functions "pnpm --filter @case-study/functions test"
+
+      # ── Production build ─────────────────────────────────────────────
+      - name: Build @case-study/web
+        run: pnpm --filter @case-study/web build
+        env:
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: demo-case-study
+          NEXT_PUBLIC_USE_FIREBASE_EMULATOR: 'false'
